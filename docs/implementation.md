@@ -47,10 +47,10 @@ no-magic/
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File count          | Exactly one `.py` file per algorithm                                                                                                                                                     |
 | Dependencies        | Python standard library only (`os`, `math`, `random`, `json`, `struct`, `urllib`, `collections`, `itertools`, `functools`, `string`, `hashlib`, `time`)                                  |
-| Execution           | `python script.py` with no arguments runs the full train + inference loop                                                                                                                |
+| Execution           | `python script.py` with no arguments runs the whole program: the full train + inference loop for `train_infer` scripts, training and comparing arms for `comparison` scripts, and the recorded `forward_pass` or `algorithm_demo` demonstration otherwise (see `docs/catalog.json`) |
 | Runtime             | Under **7 minutes on M-series Mac** or under **10 minutes on 2019-era Intel i5**. Target 7 min to leave headroom for slower hardware.                                                    |
-| Dataset             | Auto-downloaded on first run via `urllib`, cached locally, under 5MB                                                                                                                     |
-| Output              | Prints training progress and inference results to stdout                                                                                                                                 |
+| Dataset             | Generated or embedded in the script, or auto-downloaded on first run via `urllib` and cached locally (`names_download`: makemore `names.txt` in the working directory, needs network once); under 5MB |
+| Output              | Prints to stdout what the teaching kind demonstrates: training progress and inference results for `train_infer`, per-arm training and comparison results for `comparison`, and mechanism or algorithm results for `forward_pass` and `algorithm_demo` |
 | Seed                | `random.seed(42)` for reproducibility                                                                                                                                                    |
 | Comments            | **Mandatory.** Every script must follow the commenting standard in `CONTRIBUTING.md`. Scripts will not be merged without adequate commentary.                                            |
 | Autograd            | Scripts using scalar autograd must implement the canonical `Value` class interface defined in `docs/autograd-interface.md`                                                               |
@@ -131,7 +131,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Implement scalar autograd (reuse the Value class pattern)
 2. Implement a vanilla RNN:
    a. h_t = tanh(W_xh @ x_t + W_hh @ h_{t-1} + b_h)
@@ -190,7 +190,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Start with byte-level vocabulary (256 base tokens)
 2. Count all adjacent token pairs in the corpus
 3. Merge the most frequent pair into a new token
@@ -233,7 +233,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Define a simple encoder (bag-of-character-ngrams → linear projection)
 2. Construct training pairs:
    - Positive: augmented versions of the same document (e.g., character dropout)
@@ -279,7 +279,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Build a document index:
    - Tokenize documents into terms
    - Compute TF-IDF (or BM25) scores
@@ -327,7 +327,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Define a tiny 2D dataset (e.g., points sampled from a spiral or Swiss roll)
 2. Forward process: add noise at T timesteps with a linear schedule
 3. Train a small MLP to predict the noise given (noisy_data, timestep)
@@ -372,7 +372,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Define a tiny dataset (2D points or small discrete sequences)
 2. Encoder: maps input → (mean, log_variance) of latent distribution
 3. Reparameterize: z = mean + exp(0.5 * log_var) * epsilon, where epsilon ~ N(0,1)
@@ -419,7 +419,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```texttext
 1. Train a base model (reuse microgpt architecture) on dataset A
 2. Freeze all base model parameters
 3. For selected weight matrices, add low-rank adapters: A (d×r) and B (r×d), r << d
@@ -464,7 +464,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```text
 1. Train a base/reference model on a text corpus
 2. Create preference pairs: (prompt, chosen_completion, rejected_completion)
 3. Compute log-probabilities of chosen and rejected under both the policy and reference model
@@ -509,7 +509,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```text
 1. Train a base language model (pretrain phase)
 2. Train a reward model on preference pairs:
    - Input: (prompt, completion) → scalar reward score
@@ -572,7 +572,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```text
 1. Define N small expert MLPs (each identical architecture, different weights)
 2. Define a router: linear layer mapping input → N expert scores
 3. For each input token:
@@ -632,7 +632,7 @@ This prevents readers from skipping the autograd section and missing per-script 
 
 **Algorithm outline:**
 
-```
+```text
 For each attention variant:
 1. Implement the forward pass
 2. Count FLOPs and memory usage analytically
@@ -675,7 +675,7 @@ For each attention variant:
 
 **Algorithm outline:**
 
-```
+```text
 1. Implement attention WITHOUT KV cache (recompute everything each step)
 2. Implement attention WITH KV cache (incremental, append-only)
 3. Run both on the same autoregressive generation task
@@ -718,7 +718,7 @@ For each attention variant:
 
 **Algorithm outline:**
 
-```
+```text
 1. Train a small model to convergence (reuse microgpt architecture)
 2. Quantize weights to INT8:
    a. Compute scale factor: max(abs(weights)) / 127
@@ -751,6 +751,75 @@ For each attention variant:
 
 ---
 
+### `microturboquant.py` — Data-Oblivious Vector Quantization
+
+> _"Why rotating a vector before quantizing it works — random rotation makes coordinates independent, turning one hard D-dim quantization problem into D easy 1-D ones."_
+
+**What it teaches:**
+
+- The data-oblivious regime: compress vectors with no access to the data distribution
+- Why coordinate-wise scalar quantization fails on anisotropic data (elongated clusters waste bits)
+- Random rotation as a universal preprocessor: any unit vector's rotated coordinates concentrate near a Beta distribution
+- Optimal 1-D scalar quantizers for a known marginal (vs. absmax, which is loss-oblivious)
+- Inner-product preservation as the right quality metric for quantized embeddings (not raw MSE)
+- The 1-bit Quantized Johnson-Lindenstrauss trick: sign bits on residuals recover unbiased inner-product estimates
+
+**Algorithm outline:**
+
+```text
+1. Generate the evaluation corpus:
+   a. Real: per-name embeddings via random projection of bigram counts
+      (Johnson-Lindenstrauss densification; near-isotropic, realistic magnitudes)
+   b. Synthetic: anisotropic Gaussians with one dominant-axis std inflated by 6x
+      before unit-normalization — the regime where absmax wastes bits and
+      rotation should help
+2. Baseline: plain absmax scalar quantization (no rotation)
+   a. Per-vector scale = max(abs(x)) / (2^(b-1) - 1)
+   b. Quantize each coordinate independently
+3. TurboQuant: random-rotation + scalar quantization
+   a. Sample a D-by-D rotation R via Gram-Schmidt on Gaussian columns (one rotation,
+      shared across all vectors — data-oblivious)
+   b. Rotate: y = R @ x
+   c. Absmax-quantize y
+   d. Dequantize and rotate back: x_hat = R^T @ y_hat
+4. 1-bit QJL residual stage:
+   a. Sample a second random Gaussian projection S of shape (K, D)
+   b. For each vector, store sign bits of S @ x (K bits per vector)
+   c. Show <a,b> ~ (pi/2) * mean(sign(S @ a) * sign(S @ b)) recovers IP unbiasedly
+5. Evaluate on held-out vector pairs at bit-widths {1, 2, 4, 8}:
+   a. Inner-product MSE (primary metric — the paper's headline)
+   b. Mean signed error for the QJL estimator
+6. Print a rate-distortion table: baseline vs. TurboQuant at each bit-width
+```
+
+**Dataset:** `names.txt` (reused) for real embeddings. Synthetic anisotropic Gaussians generated inline — no download needed.
+
+**Key implementation details:**
+
+- **No NumPy.** Matrix-vector products are nested Python loops. Keep D small (32) and N moderate (~300 vectors) so total FLOPs stay under ~10M.
+- **No autograd.** The entire pipeline is forward math; skip the `Value` class. Real embeddings use a fixed random projection of sparse bigram counts, not a trained skip-gram — random projection runs in milliseconds and produces vectors in the regime where TurboQuant's rate-distortion story is clean.
+- Rotation construction: Gram-Schmidt on D columns of standard Gaussian samples. Verify orthogonality by printing `max(abs(R^T R - I))` after construction.
+- **Anisotropy sweet spot.** ANISOTROPY = 6x is the point where absmax starts wasting bits AND the post-normalization vector is still dense. Above ~10x the normalized vector is nearly 1-sparse and absmax trivially wins; below ~3x the gap is too mild to show at D=32.
+- **Sparse-vector signpost.** Document explicitly that TurboQuant loses on very sparse unit vectors (raw bigram counts, one-hot) — rotation converts sparse-good into dense-average. Production uses structured rotations + sparse-aware codebooks.
+- **Beta-optimal quantizer is out of scope.** The paper derives per-coord optimal bin boundaries from the Beta marginal of rotated coordinates; implementing this adds ~60 LOC and buys ~10% MSE improvement. Signpost-comment the omission.
+
+**Success criteria:**
+
+- At 4 bits/coord, TurboQuant inner-product MSE is at least 1.5x lower than absmax baseline on anisotropic synthetic data
+- At 8 bits/coord, TurboQuant inner-product MSE is at least 1.3x lower than absmax baseline on anisotropic synthetic data
+- On near-isotropic real embeddings, TurboQuant IP-MSE stays within 1.2x of absmax at every bit-width (no regression in the data-oblivious regime)
+- QJL mean signed error below 2% of unit-vector IP range on held-out pairs
+- Orthogonality check: `max(abs(R^T R - I)) < 1e-10`
+- Runtime: < 1 minute on M-series Mac (no training, all forward math)
+
+**Expected complexity:** ~400-460 lines. Breakdown: ~70 lines linear-algebra primitives + rotation, ~60 lines quantizers, ~50 lines QJL, ~90 lines embedding sources, ~80 lines evaluation + rate-distortion, rest is data loading, constants, and main.
+
+**Pedagogical connection:** Sits between `microquant` (data-aware, per-tensor) and `microembedding` (vectors as the object of interest). First entry in the catalog at the intersection of random projections and quantization — no prior coverage of Johnson-Lindenstrauss or data-oblivious compression.
+
+**Reference:** Aamand et al., "TurboQuant: Online Vector Quantization with Optimal Bit Budget" (2025). https://arxiv.org/abs/2504.19874
+
+---
+
 ### `microflash.py` — Flash Attention (Algorithmic Simulation)
 
 > _"Why Flash Attention is fast — the tiling and online softmax trick, simulated in pure Python."_
@@ -765,7 +834,7 @@ For each attention variant:
 
 **Algorithm outline:**
 
-```
+```text
 1. Implement standard attention (materialize full N×N matrix)
 2. Implement Flash Attention:
    a. Tile Q, K, V into blocks of size B
@@ -814,7 +883,7 @@ For each attention variant:
 
 **Algorithm outline:**
 
-```
+```text
 1. Train two language models inline (reuses microgpt's autograd pattern):
    - Large "target" model: n_embd=16, n_layer=1 (~4,200 params)
    - Small "draft" model: n_embd=8, n_layer=1 (~1,300 params)
@@ -853,15 +922,15 @@ For each attention variant:
 
 Scripts were built in this order to manage dependencies and validate the shared autograd/model patterns. The canonical autograd interface (`docs/autograd-interface.md`) was finalized before Phase 2.
 
-| Phase       | Scripts                                           | Rationale                                                                                                                                                                                  |
-| ----------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Phase 1** | `microtokenizer.py`, `microembedding.py`          | No autograd dependency, standalone algorithms                                                                                                                                              |
-| **Phase 2** | `microgpt.py`, `micrornn.py`, `microattention.py` | Establishes the canonical autograd `Value` class pattern. microgpt is the reference implementation; micrornn extends it with `sigmoid`. microattention is forward-pass only (no autograd). |
-| **Phase 3** | `microrag.py`, `microlora.py`                     | microrag uses a character-level MLP (lighter autograd dependency). microlora builds directly on microgpt's training pattern.                                                               |
-| **Phase 4** | `microdiffusion.py`, `microvae.py`                | Independent algorithms, different model families. Can be parallelized with Phase 3.                                                                                                        |
-| **Phase 5** | `microdpo.py`, `microppo.py`                      | Requires stable autograd pattern from Phase 2. microppo uses hybrid autograd (policy: Value class, reward/value: plain floats).                                                            |
-| **Phase 6** | `microquant.py`, `microkv.py`, `microflash.py`    | Systems scripts, can be built independently of Phases 3-5                                                                                                                                  |
-| **Phase 7** | `microbeam.py`, `micromoe.py`                     | microbeam trains two models inline (depends on Phase 2 patterns). micromoe uses hybrid autograd (router: Value class, experts: plain floats).                                              |
+| Phase       | Scripts                                                              | Rationale                                                                                                                                                                                  |
+| ----------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Phase 1** | `microtokenizer.py`, `microembedding.py`                             | No autograd dependency, standalone algorithms                                                                                                                                              |
+| **Phase 2** | `microgpt.py`, `micrornn.py`, `microattention.py`                    | Establishes the canonical autograd `Value` class pattern. microgpt is the reference implementation; micrornn extends it with `sigmoid`. microattention is forward-pass only (no autograd). |
+| **Phase 3** | `microrag.py`, `microlora.py`                                        | microrag uses a character-level MLP (lighter autograd dependency). microlora builds directly on microgpt's training pattern.                                                               |
+| **Phase 4** | `microdiffusion.py`, `microvae.py`                                   | Independent algorithms, different model families. Can be parallelized with Phase 3.                                                                                                        |
+| **Phase 5** | `microdpo.py`, `microppo.py`                                         | Requires stable autograd pattern from Phase 2. microppo uses hybrid autograd (policy: Value class, reward/value: plain floats).                                                            |
+| **Phase 6** | `microquant.py`, `microturboquant.py`, `microkv.py`, `microflash.py` | Systems scripts, fully independent of other phases. `microturboquant` is pure forward math (no autograd, no training); all matrix operations are hand-rolled pure-Python loops at D=32.                             |
+| **Phase 7** | `microbeam.py`, `micromoe.py`                                        | microbeam trains two models inline (depends on Phase 2 patterns). micromoe uses hybrid autograd (router: Value class, experts: plain floats).                                              |
 
 ### Dependency Notes
 

@@ -27,6 +27,7 @@ Each challenge presents a code snippet or scenario drawn directly from one of th
 | [roofline.md](roofline.md)     | `03-systems/microroofline.py`      | Arithmetic intensity, MIMO rank utilization, FLOPs vs wall-clock time      |
 | [ssm.md](ssm.md)               | `03-systems/microssm.py`           | Fixed state vs KV cache, delta bias, selective B/C, Euler discretization   |
 | [tokenizer.md](tokenizer.md)   | `01-foundations/microtokenizer.py` | Merge order, priority replay, vocab size, corpus collapse                  |
+| [turboquant.md](turboquant.md) | `03-systems/microturboquant.py`    | Rotation-hurts-on-sparse, Haar uniformity, QJL sign-bit bias, orthogonality threshold |
 | [vae.md](vae.md)               | `01-foundations/microvae.py`       | Reparameterization trick, KL collapse, log_var clamping, latent structure  |
 
 ## How to Use

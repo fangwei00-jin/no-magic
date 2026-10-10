@@ -4,8 +4,8 @@
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white)
 ![License: MIT](https://img.shields.io/github/license/no-magic-ai/no-magic?style=flat-square)
-![Algorithms](https://img.shields.io/badge/algorithms-47-orange?style=flat-square)
-![Version](https://img.shields.io/badge/version-v2.0.0-blue?style=flat-square)
+![Algorithms](https://img.shields.io/badge/algorithms-48-orange?style=flat-square)
+![Version](https://img.shields.io/badge/version-v3.0.0-blue?style=flat-square)
 ![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)
 ![GitHub stars](https://img.shields.io/github/stars/no-magic-ai/no-magic?style=flat-square)
@@ -24,14 +24,14 @@
 
 ## What This Is
 
-`no-magic` is a curated collection of single-file, dependency-free Python implementations of the algorithms that power modern AI. Each script is a complete, runnable program that trains a model from scratch and performs inference — no frameworks, no abstractions, no hidden complexity.
+`no-magic` is a curated collection of single-file, dependency-free Python implementations of the algorithms that power modern AI. Each script is a complete, runnable program — no frameworks, no abstractions, no hidden complexity. Most scripts train from scratch: some train one model and then use it for inference, others train alternative variants side by side and compare them (often running inference too). A smaller set runs untrained forward-pass mechanisms or non-learning algorithms. Each script's kind is recorded explicitly (see [Script contracts](#script-contracts)).
 
 Every script in this repository is an **executable proof** that these algorithms are simpler than the industry makes them seem. The goal is not to replace PyTorch or TensorFlow — it's to make you dangerous enough to understand what they're doing underneath.
 
 ## See It In Action
 
 <details open>
-<summary><h3>01 — Foundations (14 scripts)</h3></summary>
+<summary><h3>01 — Foundations (16 scripts)</h3></summary>
 <table>
 <tr>
 <td align="center"><a href="01-foundations/microgpt.py"><b>Autoregressive GPT</b></a><br/>
@@ -88,7 +88,7 @@ Every script in this repository is an **executable proof** that these algorithms
 </tr>
 </table>
 
-**Comparison scripts:** [attention_vs_none.py](01-foundations/attention_vs_none.py) · [rnn_vs_gru_vs_lstm.py](01-foundations/rnn_vs_gru_vs_lstm.py)
+**Comparison programs without a preview:** [attention_vs_none.py](01-foundations/attention_vs_none.py) · [rnn_vs_gru_vs_lstm.py](01-foundations/rnn_vs_gru_vs_lstm.py)
 
 </details>
 
@@ -130,12 +130,12 @@ Every script in this repository is an **executable proof** that these algorithms
 </tr>
 </table>
 
-**Comparison scripts:** [adam_vs_sgd.py](02-alignment/adam_vs_sgd.py)
+**Comparison program without a preview:** [adam_vs_sgd.py](02-alignment/adam_vs_sgd.py)
 
 </details>
 
 <details>
-<summary><h3>03 — Systems & Inference (16 scripts)</h3></summary>
+<summary><h3>03 — Systems & Inference (17 scripts)</h3></summary>
 <table>
 <tr>
 <td align="center"><a href="03-systems/microattention.py"><b>Attention Mechanism</b></a><br/>
@@ -196,7 +196,9 @@ Every script in this repository is an **executable proof** that these algorithms
 <td align="center"><a href="03-systems/microroofline.py"><b>Roofline Model</b></a><br/>
 <img src="https://raw.githubusercontent.com/no-magic-ai/no-magic-viz/main/previews/microroofline.gif" width="280"/><br/>
 <sub>SISO → MIMO hardware utilization</sub></td>
-<td></td>
+<td align="center"><a href="03-systems/microturboquant.py"><b>TurboQuant</b></a><br/>
+<img src="https://raw.githubusercontent.com/no-magic-ai/no-magic-viz/main/previews/microturboquant.gif" width="280"/><br/>
+<sub>Data-oblivious quantization via random rotation</sub></td>
 <td></td>
 </tr>
 </table>
@@ -241,8 +243,8 @@ This project follows a strict set of constraints:
 
 - **One file, one algorithm.** Every script is completely self-contained. No imports from local modules, no `utils.py`, no shared libraries.
 - **Zero external dependencies.** Only Python's standard library. If it needs `pip install`, it doesn't belong here.
-- **Train and infer.** Every script includes both the learning loop and generation/prediction. You see the full lifecycle.
-- **Runs in minutes on a CPU.** No GPU required. No cloud credits. Every script completes on a laptop in reasonable time.
+- **A recorded lifecycle.** Most scripts train a model and then use it for inference, and many trained comparisons do too; the exceptions (comparisons that stop at the comparison, untrained forward-pass demonstrations and non-learning algorithms) are recorded per script. See [Script contracts](#script-contracts) and [`docs/catalog.json`](docs/catalog.json).
+- **Designed to run in minutes on a CPU.** No GPU required. No cloud credits. Scripts are written to finish on a laptop CPU; the tier READMEs show historical timings recorded when each script was added, which are not a current measurement of every script.
 - **Comments are mandatory, not decorative.** Every script must be readable as a guided walkthrough of the algorithm. We are not optimizing for line count — we are optimizing for understanding. See `CONTRIBUTING.md` for the full commenting standard.
 
 ## Who This Is For
@@ -259,7 +261,7 @@ This is not a beginner's introduction to programming. You should be comfortable 
 
 The repository is organized into four tiers based on conceptual dependency:
 
-### 01 — Foundations (14 scripts)
+### 01 — Foundations (16 scripts)
 
 Core algorithms that form the building blocks of modern AI systems. GPT, RNN, LSTM, BERT, CNN, ResNet, ViT, GAN, VAE, diffusion, embeddings, tokenization, RAG, and optimizer comparison. Includes comparison scripts for attention mechanisms and recurrent architectures.
 
@@ -271,7 +273,7 @@ Methods for steering, fine-tuning, and aligning models after pretraining. LoRA, 
 
 See [`02-alignment/README.md`](02-alignment/README.md) for the full algorithm list, timing data, and roadmap.
 
-### 03 — Systems & Inference (16 scripts)
+### 03 — Systems & Inference (17 scripts)
 
 The engineering that makes models fast, small, and deployable. Attention variants, Flash Attention, KV-cache, PagedAttention, RoPE, quantization, beam search, checkpointing, parallelism, SSMs, vector search, BM25, speculative decoding, complex SSM equivalence, discretization methods, and roofline analysis.
 
@@ -282,6 +284,21 @@ See [`03-systems/README.md`](03-systems/README.md) for the full algorithm list, 
 Autonomous reasoning and decision-making. Monte Carlo Tree Search for strategic planning, ReAct agents for tool-augmented reasoning loops, multi-armed bandits for exploration/exploitation, minimax with alpha-beta pruning for adversarial search, and memory-augmented networks for persistent agent memory.
 
 See [`04-agents/README.md`](04-agents/README.md) for the full algorithm list, timing data, and roadmap.
+
+### Script contracts
+
+[`docs/catalog.json`](docs/catalog.json) is generated by [`scripts/generate_catalog.py`](scripts/generate_catalog.py) from explicit per-script records; it is never hand-edited. For the 48 scripts it currently lists, it records:
+
+- **Teaching kind** — assigned from each script's default program, checked in this order:
+  - `comparison` (15 scripts) trains two or more alternative arms for a common task and reports arm-versus-arm quality or training-cost results, e.g. `micrornn` (RNN vs GRU), `microbatchnorm`, `microoptimizer`, `microcheckpoint`. Many of these also run inference; `comparison` is not a no-inference label.
+  - `train_infer` (25) trains one model and then uses it for inference, generation, decisions or evaluation. This includes one trained model run through alternative decoders or serving methods (`microbeam`, `microkv`, `microquant`); a draft or reference model trained only to support decoding, and the stages of one training pipeline (`microlora`, `microdpo`), are not separate arms.
+  - `forward_pass` (4: `microattention`, `microflash`, `micropaged`, `microrope`) runs untrained forward computations.
+  - `algorithm_demo` (4: `microbm25`, `microvectorsearch`, `microturboquant`, `micromcts`) runs non-learning algorithms.
+- **Data source** — `names_download` (23 scripts download Karpathy's makemore `names.txt` on first run) or `in_script` (25 scripts generate or embed their data).
+- **Paper slug** — the [no-magic-papers](https://github.com/no-magic-ai/no-magic-papers) card each script links to. Script slugs (file basenames such as `microgpt`) and paper slugs (card names such as `gpt-1`) are separate namespaces; every link is written out in the generator and never derived from a name.
+- **Adaptation note** — where a script differs from its linked card. For example, `microgpt` links to the GPT-1 card while its source follows a GPT-2-style architecture with RMSNorm, ReLU and no biases and has no task fine-tuning stage; `microvectorsearch` implements LSH, not the HNSW index of its card. These notes describe the code as it is; they do not claim paper-scale results, and a script without a note is not thereby claimed to replicate its card exactly.
+
+`python scripts/generate_catalog.py --check` exits non-zero without writing when the committed catalog is not byte-identical to the generated output. It is a local maintainer command; pull-request CI does not run it today. After changes reach `main`, the existing Update Catalog workflow (`.github/workflows/catalog.yml`) regenerates `docs/catalog.json` and commits any difference; that keeps `main` current but does not check pull requests.
 
 ## How to Use This Repo
 
@@ -294,7 +311,7 @@ cd no-magic
 python 01-foundations/microgpt.py
 ```
 
-That's it. No virtual environments, no dependency installation, no configuration. Each script will download any small datasets it needs on first run.
+That's it. No virtual environments, no dependency installation, no configuration. The 23 scripts whose catalog `data_source` is `names_download` fetch makemore's `names.txt` with `urllib` on first run, so that first run needs network access; the file is cached as `names.txt` in the directory you run from and reused from there. The other 25 scripts generate or embed their data and need no network.
 
 ### Minimum Requirements
 
@@ -335,30 +352,30 @@ Each tier's README has the full algorithm list with measured run times for that 
 
 ### Challenges
 
-"Predict the behavior" exercises that test your understanding of the algorithms. 20 challenges covering all 4 tiers — attention, GPT, GAN, DPO, optimizers, discretization, complex SSMs, roofline, tokenizer, embedding, RNN, VAE, LoRA, PPO, MoE, KV-cache, quantization, SSM, MCTS, and ReAct. Each challenge presents a code snippet and asks you to reason about the output before running it.
+"Predict the behavior" exercises that test your understanding of the algorithms. 21 challenges covering all 4 tiers — attention, GPT, GAN, DPO, optimizers, discretization, complex SSMs, roofline, tokenizer, embedding, RNN, VAE, LoRA, PPO, MoE, KV-cache, quantization, TurboQuant, SSM, MCTS, and ReAct. Each challenge presents a code snippet and asks you to reason about the output before running it.
 
 See [`challenges/README.md`](challenges/README.md) for the full challenge set.
 
 ### Flashcards
 
-Anki-compatible flashcard decks for spaced repetition review. 182 cards across 4 tiers (foundations, alignment, systems, agents), covering key concepts, equations, and design decisions from every script.
+Anki-compatible flashcard decks for spaced repetition review. 190 cards across 4 tiers (foundations, alignment, systems, agents), covering key concepts, equations, and design decisions from every script.
 
 ```bash
-# Generate the Anki deck
-python resources/flashcards/generate_anki.py
+# Generate the Anki decks (needs the genanki package)
+uv run --no-project --with genanki python resources/flashcards/generate_anki.py
 ```
 
-See [`resources/flashcards/`](resources/flashcards/) for the raw card data and generation script.
+The script writes `no-magic-foundations.apkg`, `no-magic-alignment.apkg`, `no-magic-systems.apkg` and a combined `no-magic-complete.apkg` (170 cards) next to itself; `agents.csv` (20 cards) is not exported. Anki renders card fields as HTML, so angle-bracket notation that a browser would read as a tag, such as an inner product `<a,b>`, is written with Unicode brackets `⟨a, b⟩` or the entities `&lt;` and `&gt;`. A `<` or `>` followed by a space or digit, as in `< 1`, is ordinary visible text and is left as written. See [`resources/flashcards/`](resources/flashcards/) for the raw card data and generation script.
 
 ### Learning Path
 
-Structured tracks for different goals — 7 learning tracks ranging from weekend sprints to a full curriculum. Each track orders scripts by conceptual dependency and includes time estimates, prerequisites, and milestone markers.
+Structured tracks for different goals — 7 learning tracks ranging from weekend sprints to a full curriculum. Each track orders scripts by conceptual dependency and includes time estimates, prerequisites, and milestone markers. In the Transformer, Alignment and Modern Inference tracks every step also gives its exact command, data needs, source/paper/preview links, a predict-before-run question with a checked answer and the limits of what the program shows.
 
 See [`LEARNING_PATH.md`](LEARNING_PATH.md) for the full guide.
 
 ### Offline Book (EPUB)
 
-All 47 scripts compiled into a single EPUB with table of contents, thesis excerpts, tradeoff sections, and full annotated source. Readable on any e-reader, tablet, or phone.
+All 48 scripts compiled into a single EPUB with table of contents, thesis excerpts, tradeoff sections, and full annotated source. Readable on any e-reader, tablet, or phone.
 
 ```bash
 # Requires pandoc: brew install pandoc (macOS) or apt install pandoc
@@ -437,6 +454,7 @@ graph LR
     CSSM["Complex SSM"]
     DISC["Discretize"]
     ROOF["Roofline"]
+    TURBO["TurboQuant"]
   end
 
   %% --- Foundation internals ---
@@ -481,14 +499,17 @@ graph LR
   %% --- Cross-tier into QLoRA ---
   QUANT --> QLORA
 
+  %% --- Quantization family ---
+  QUANT --> TURBO
+  EMB -.-> TURBO
+
   %% --- Foundations / Alignment → Agents ---
   REINF --> REACT
-  GPT --> REACT
 
   %% --- Apply styles ---
   class TOK,EMB,OPT,RNN,CONV,GPT,BERT,RAG,DIFF,VAE,GAN foundations
   class BN,DROP,LORA,QLORA,DPO,REINF,PPO,GRPO,MOE alignment
-  class ATTN,FLASH,ROPE,KV,PAGED,QUANT,BEAM,CKPT,PAR,SSM,CSSM,DISC,ROOF systems
+  class ATTN,FLASH,ROPE,KV,PAGED,QUANT,BEAM,CKPT,PAR,SSM,CSSM,DISC,ROOF,TURBO systems
   class MCTS,REACT agents
 ```
 
@@ -507,11 +528,7 @@ Karpathy proved that there's enormous demand for "the algorithm, naked." `no-mag
 
 ## How This Was Built
 
-In the spirit of transparency: this repository was co-authored with Claude (Anthropic). I designed the project — which algorithms to include, the four-tier structure, the constraint system, the learning paths, and how each script should be organized — then directed the implementations and verified that every script trains and infers correctly end-to-end on CPU.
-
-The scope goes beyond code. The animated visualizations (Manim scenes), predict-the-behavior challenges, Anki flashcards, learning path tracks, EPUB generation pipeline, and translation infrastructure were all designed collaboratively — I set the requirements and structure, Claude helped execute. Every artifact was reviewed and validated.
-
-I'm not claiming to have hand-typed every algorithm from scratch. The value of this project is in the curation, the architectural decisions, and the fact that everything works as a self-contained learning resource — from the scripts themselves to the supporting materials that help you internalize what they teach.
+I built this project with help from multiple AI coding agents. I chose the algorithms, designed the structure and learning paths, set the constraints, and guided the implementation. The agents helped with both the code and the supporting materials, from visualizations and exercises to flashcards, EPUB generation, and translations. I reviewed the results.
 
 This is how I build in 2026. I'd rather be upfront about it.
 
@@ -529,7 +546,7 @@ This is how I build in 2026. I'd rather be upfront about it.
 
 Contributions are welcome, but the constraints are non-negotiable. See `CONTRIBUTING.md` for the full guidelines. The short version:
 
-- One file. Zero dependencies. Trains and infers.
+- One file. Zero dependencies. Trains and infers, unless the script's recorded teaching kind is a documented exception.
 - If your PR adds a `requirements.txt`, it will be closed.
 - Quality over quantity. Each script should be the **best possible** minimal implementation of its algorithm.
 
@@ -541,4 +558,4 @@ MIT — use these however you want. Learn from them, teach with them, build on t
 
 _The constraint is the product. Everything else is just efficiency._
 
-_v2.0.0 — March 2026_
+_v3.0.0 — April 2026_
